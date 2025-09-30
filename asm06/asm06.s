@@ -1,35 +1,38 @@
-; add_exit.asm
-; Additionne deux nombres passés en argument et renvoie le résultat comme code de sortie
-; Usage: ./add_exit 5 3  => exit code 8
-
 global _start
+
+section .bss
+buffer resb 32
 
 section .text
 _start:
-    ; Vérifier argc >= 3 (programme + 2 paramètres)
-    mov rax, [rsp]        ; argc
+    ; Vérifier qu'il y a au moins 2 arguments
+    mov rax, [rsp]      ; argc
     cmp rax, 3
-    jb no_args            ; moins de 2 params -> exit 1
+    jb no_args
 
     ; Récupérer argv[1] et argv[2]
-    mov rdi, [rsp + 8]    ; argv[0] (on ignore)
-    mov rsi, [rsp + 16]   ; argv[1]
-    mov rdx, [rsp + 24]   ; argv[2]
-
-    ; Convertir argv[1] en entier
-    mov rdi, rsi
+    mov rdi, [rsp + 16] ; argv[1]
     call atoi
-    mov r8, rax           ; stocker premier nombre
+    mov r8, rax          ; premier nombre
 
-    ; Convertir argv[2] en entier
-    mov rdi, rdx
+    mov rdi, [rsp + 24] ; argv[2]
     call atoi
-    add r8, rax           ; r8 = somme
+    add r8, rax          ; somme
 
-    ; Limiter le code de sortie à 0-255
-    mov rax, 60           ; sys_exit
+    ; Convertir en string
     mov rdi, r8
-    and rdi, 0xff
+    mov rsi, buffer
+    call itoa
+
+    ; Afficher
+    mov rax, 1           ; sys_write
+    mov rdi, 1           ; stdout
+    mov rdx, 32
+    syscall
+
+    ; Sortie
+    mov rax, 60
+    xor rdi, rdi
     syscall
 
 no_args:
@@ -37,17 +40,14 @@ no_args:
     mov rdi, 1
     syscall
 
-;-------------------------------------------------------
-; atoi simple (gère aussi les nombres négatifs)
-; entrée: rdi = adresse string
-; sortie: rax = entier
+;----------------------------
+; atoi (chaîne -> entier, gère négatif)
 atoi:
     xor rax, rax
     xor rcx, rcx
     mov bl, byte [rdi]
     cmp bl, '-'
     jne .atoi_loop_start
-    ; signe négatif
     inc rdi
     mov rcx, 1
 .atoi_loop_start:
@@ -66,4 +66,32 @@ atoi:
     jne .atoi_return
     neg rax
 .atoi_return:
+    ret
+
+;----------------------------
+; itoa (entier -> string)
+itoa:
+    mov rcx, rsi
+    add rcx, 31
+    mov byte [rcx], 10   ; ajout saut de ligne
+    dec rcx
+    mov rax, rdi
+    test rax, rax
+    jns .itoa_loop
+    ; négatif
+    neg rax
+    mov bl, '-'
+    mov [rsi], bl
+    inc rsi
+.itoa_loop:
+    xor rdx, rdx
+    mov rbx, 10
+    div rbx
+    add dl, '0'
+    mov [rcx], dl
+    dec rcx
+    test rax, rax
+    jnz .itoa_loop
+    inc rcx
+    mov rsi, rcx
     ret
