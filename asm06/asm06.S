@@ -1,7 +1,7 @@
 global _start
 
 section .bss
-    buffer resb 32           ; tampon pour convertir le résultat en texte
+    buffer resb 32
 
 section .text
 _start:
