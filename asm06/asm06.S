@@ -1,9 +1,8 @@
-global _start
-
 section .bss
     buffer resb 32
 
 section .text
+    global _start                               
 _start:
     
     mov rbx, [rsi + 8]
