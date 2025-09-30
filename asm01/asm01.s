@@ -1,17 +1,18 @@
+section .data
+    msg db '1337', 0xA
+
 section .text
-    global _start
 
-
-section .data 
-    tb nb 0xf
-
+    global _start   
 _start:
 
-    mov rdi, nb
-    mov rax, 4
-    mov rbx, 1
-    mov rcx, 1
+    mov rax, 1
+    mov rsi, msg
+    mov rdx, 5
+    mov rdi, 1
     syscall
 
     mov rax, 60
+    xor rdi, rdi
     syscall
+    
