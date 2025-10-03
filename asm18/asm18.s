@@ -40,6 +40,7 @@ _start:
     mov rdi, r12
     mov rsi, 1                      ; SOL_SOCKET
     mov rdx, 20                     ; SO_RCVTIMEO
+    
     mov r10, tv_sec
     mov r8, 16
     syscall
